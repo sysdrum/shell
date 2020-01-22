@@ -58,6 +58,10 @@ else
         set org.gnome.shell.extensions.pop-shell tile-by-default false
 fi
 
+gsettings \
+        --schemadir ~/.local/share/gnome-shell/extensions/pop-shell@system76.com/schemas/ \
+        set org.gnome.shell.extensions.pop-shell gap-inner 8
+
 # Enable extension
 gnome-extensions enable "pop-shell@system76.com"
 
@@ -69,4 +73,4 @@ then
     xdotool key r Return
 fi
 
-journalctl -o cat -n 0 -f "$(which gnome-shell)"
+journalctl -o cat -n 0 -f "$(which gnome-shell)" | grep -v warning

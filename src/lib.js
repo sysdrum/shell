@@ -6,6 +6,9 @@ const { Meta, St } = imports.gi;
 var Geom = Me.imports.geom;
 var Window = Me.imports.window;
 
+var ORIENTATION_HORIZONTAL = 0;
+var ORIENTATION_VERTICAL = 1;
+
 function ok(input, func) {
     return input ? func(input) : null;
 }
@@ -51,8 +54,16 @@ function join(iterable, next_func, between_func) {
     });
 }
 
+function is_move_op(op) {
+    return [Meta.GrabOp.WINDOW_BASE, Meta.GrabOp.MOVING, Meta.GrabOp.KEYBOARD_MOVING].includes(op);
+}
+
 function log(text) {
     global.log("pop-shell: " + text);
+}
+
+function orientation_as_str(value) {
+    return value == 0 ? "Orientation::Horizontal" : "Orientation::Vertical";
 }
 
 /// Useful in the event that you want to reuse an actor in the future

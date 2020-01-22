@@ -64,6 +64,15 @@ var Storage = class Storage {
         }
     }
 
+    /**
+     * Checks if the component associated with this entity exists
+     *
+     * @param {Entity} entity
+     */
+    contains(entity) {
+        return this.get(entity) != null;
+    }
+
     /// Fetches the component for this entity, if it exists
     get(entity) {
         let [id, gen] = entity;
@@ -98,9 +107,22 @@ var Storage = class Storage {
 
     /// Removes the component for this entity, if it exists
     remove(entity) {
-        let comp = this._store[entity];
-        this._store[entity] = null;
+        const comp = this.get(entity);
+        if (comp) {
+            this._store[entity[0]] = null;
+        };
         return comp;
+    }
+
+    /**
+     * Takes the component associated with the `entity`, and passes it into the `func` callback
+     *
+     * @param {Entity} entity
+     * @param {function} func
+     */
+    take_with(entity, func) {
+        const component = this.remove(entity);
+        return component ? func(component) : null;
     }
 
     /// Apply a function to the component when it exists
@@ -122,7 +144,7 @@ var Storage = class Storage {
 /// - An array for storing tags associated with an entity
 var World = class World {
     constructor() {
-        this.entities = new Array();
+        this._entities = new Array();
         this.storages = new Array();
         this._tags = new Array();
         this._free_slots = new Array();
@@ -130,7 +152,7 @@ var World = class World {
 
     /// The total capacity of the entity array
     get capacity() {
-        return this.entities.length;
+        return this._entities.length;
     }
 
     /// The number of unallocated entity slots
@@ -152,8 +174,8 @@ var World = class World {
 
     /// Iterates across entities in the world
     * entities() {
-        for (const entity in this.entities) {
-            if (null != entity[0]) yield entity;
+        for (const entity in this._entities) {
+            if (!this._free_slots.contains(entity[0])) yield entity;
         }
     }
 
@@ -164,11 +186,11 @@ var World = class World {
         let slot = this._free_slots.pop();
 
         if (slot) {
-            var entity = this.entities[slot];
+            var entity = this._entities[slot];
             entity[1] += 1;
         } else {
-            var entity = entity_new(this.entities.length, 0);
-            this.entities.push(entity);
+            var entity = entity_new(this.capacity, 0);
+            this._entities.push(entity);
             this._tags.push(new Set());
         }
 
@@ -179,12 +201,11 @@ var World = class World {
     ///
     /// Sets the `id` of the entity to `null`, thus marking its slot as unused.
     delete_entity(entity) {
+        this.tags(entity).clear();
         for (const storage of this.storages) {
             storage.remove(entity);
         }
 
-        this.entities[entity[0]][0] = null;
-        this.tags(entity).clear();
         this._free_slots.push(entity[0]);
     }
 

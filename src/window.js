@@ -70,8 +70,6 @@ var ShellWindow = class ShellWindow {
         this.meta.unmaximize(Meta.MaximizeFlags.VERTICAL);
         this.meta.unmaximize(Meta.MaximizeFlags.HORIZONTAL | Meta.MaximizeFlags.VERTICAL);
 
-        log(`moving ${this.name()} to (${rect.x},${rect.y},${rect.width},${rect.height})`);
-
         this.meta.move_resize_frame(
             true,
             rect.x,

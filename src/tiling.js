@@ -1,6 +1,6 @@
 const Me = imports.misc.extensionUtils.getCurrentExtension();
 
-const { log, ok, round_increment, take } = Me.imports.lib;
+const { log, ok, round_increment } = Me.imports.lib;
 const Main = imports.ui.main;
 const { Meta, St } = imports.gi;
 const Tags = Me.imports.tags;
@@ -258,6 +258,9 @@ var Tiler = class Tiler {
     accept() {
         if (this.window) {
             if (this.swap_window) {
+                if (this.ext.auto_tiler) {
+                    this.ext.attach_swap(this.swap_window.entity, this.window.entity);
+                }
                 this.swap_window.move(this.window.meta.get_frame_rect());
                 this.swap_window = null;
             }
@@ -295,6 +298,37 @@ var Tiler = class Tiler {
             win.move(rect);
         }
     }
+
+    /// Tiles window `b` into window `a`.
+    tile_into(a, b) {
+        log(`tiling ${b.name()} into ${a.name()}`);
+        let rect = a.meta.get_frame_rect();
+
+        let work_area = this.ext.monitor_work_area(a.meta.get_monitor());
+        let mon_rect = monitor_rect(work_area, this.columns, this.rows);
+
+        if (should_tile_by_width(rect)) {
+            rect.width = (rect.width / 2) - this.gap;
+
+            this.change(rect, mon_rect, 0, 0, 0, 0);
+            a.move(rect);
+
+            rect.x += rect.width + this.gap;
+
+            this.change(rect, mon_rect, 0, 0, 0, 0);
+            b.move(rect);
+        } else {
+            rect.height = (rect.height / 2) - this.gap;
+
+            this.change(rect, mon_rect, 0, 0, 0, 0);
+            a.move(rect);
+
+            rect.y += rect.height + this.gap;
+
+            this.change(rect, mon_rect, 0, 0, 0, 0);
+            b.move(rect);
+        }
+    }
 };
 
 function monitor_rect(monitor, columns, rows) {
@@ -317,6 +351,10 @@ function monitor_rect(monitor, columns, rows) {
         "width": tile_width,
         "height": tile_height,
     };
+}
+
+function should_tile_by_width(win) {
+    return win.width > win.height;
 }
 
 function tile_monitors(rect) {
